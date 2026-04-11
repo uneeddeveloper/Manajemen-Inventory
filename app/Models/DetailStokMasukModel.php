@@ -44,17 +44,18 @@ class DetailStokMasukModel extends Model
     // Simpan detail & update stok barang secara otomatis
     public function simpanDanUpdateStok(array $detail, int $id_stok_masuk)
     {
-        $barangModel = new BarangModel();
+        $db = \Config\Database::connect();
 
         foreach ($detail as $item) {
             $item['id_stok_masuk'] = $id_stok_masuk;
-            $item['subtotal']      = $item['jumlah'] * $item['harga_beli'];
+            $item['subtotal']      = (int)$item['jumlah'] * (float)$item['harga_beli'];
             $this->insert($item);
 
-            // Update stok barang: tambah jumlah masuk
-            $barangModel->set('stok', "stok + {$item['jumlah']}", false)
-                        ->where('id', $item['id_barang'])
-                        ->update();
+            // Tambah stok via query builder langsung — menghindari validasi model
+            $db->table('barang')
+               ->where('id', (int) $item['id_barang'])
+               ->set('stok', 'stok + ' . (int)$item['jumlah'], false)
+               ->update();
         }
     }
 }

@@ -37,11 +37,12 @@ class LaporanController extends BaseController
         $data = $this->_queryPenjualan($dari, $sampai);
 
         return view('laporan/penjualan', [
-            'title'  => 'Laporan Penjualan',
-            'rows'   => $data,
-            'dari'   => $dari,
-            'sampai' => $sampai,
-            'total'  => array_sum(array_column($data, 'total_harga')),
+            'title'            => 'Laporan Penjualan',
+            'rows'             => $data,
+            'dari'             => $dari,
+            'sampai'           => $sampai,
+            'total'            => array_sum(array_column($data, 'total_harga')),
+            'total_keuntungan' => array_sum(array_column($data, 'total_keuntungan')),
         ]);
     }
 
@@ -50,9 +51,10 @@ class LaporanController extends BaseController
         $dari   = $this->request->getGet('dari')   ?? date('Y-m-01');
         $sampai = $this->request->getGet('sampai') ?? date('Y-m-d');
         $rows   = $this->_queryPenjualan($dari, $sampai);
-        $total  = array_sum(array_column($rows, 'total_harga'));
+        $total            = array_sum(array_column($rows, 'total_harga'));
+        $total_keuntungan = array_sum(array_column($rows, 'total_keuntungan'));
 
-        $html = view('laporan/pdf/penjualan', compact('rows', 'dari', 'sampai', 'total'));
+        $html = view('laporan/pdf/penjualan', compact('rows', 'dari', 'sampai', 'total', 'total_keuntungan'));
         $this->_streamPdf($html, 'Laporan_Penjualan_' . $dari . '_' . $sampai, 'landscape');
     }
 
@@ -61,25 +63,26 @@ class LaporanController extends BaseController
         $dari   = $this->request->getGet('dari')   ?? date('Y-m-01');
         $sampai = $this->request->getGet('sampai') ?? date('Y-m-d');
         $rows   = $this->_queryPenjualan($dari, $sampai);
-        $total  = array_sum(array_column($rows, 'total_harga'));
+        $total            = array_sum(array_column($rows, 'total_harga'));
+        $total_keuntungan = array_sum(array_column($rows, 'total_keuntungan'));
 
         $ss    = new Spreadsheet();
         $sheet = $ss->getActiveSheet()->setTitle('Penjualan');
 
         // Header judul
-        $sheet->mergeCells('A1:G1');
+        $sheet->mergeCells('A1:H1');
         $sheet->setCellValue('A1', 'LAPORAN PENJUALAN');
-        $sheet->mergeCells('A2:G2');
+        $sheet->mergeCells('A2:H2');
         $sheet->setCellValue('A2', 'Periode: ' . $this->_formatTanggal($dari) . ' s/d ' . $this->_formatTanggal($sampai));
-        $this->_styleTitle($sheet, 'A1:G1', 'A2:G2');
+        $this->_styleTitle($sheet, 'A1:H1', 'A2:H2');
 
         // Kolom header
-        $headers = ['No', 'No Transaksi', 'Tanggal', 'Nama Pembeli', 'Total Harga', 'Bayar', 'Kembalian'];
-        $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+        $headers = ['No', 'No Transaksi', 'Tanggal', 'Nama Pembeli', 'Total Harga', 'Bayar', 'Kembalian', 'Keuntungan'];
+        $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         foreach ($headers as $i => $h) {
             $sheet->setCellValue($cols[$i] . '4', $h);
         }
-        $this->_styleHeader($sheet, 'A4:G4');
+        $this->_styleHeader($sheet, 'A4:H4');
 
         // Data
         $row = 5;
@@ -91,6 +94,7 @@ class LaporanController extends BaseController
             $sheet->setCellValue('E' . $row, (float) $r['total_harga']);
             $sheet->setCellValue('F' . $row, (float) $r['bayar']);
             $sheet->setCellValue('G' . $row, (float) $r['kembalian']);
+            $sheet->setCellValue('H' . $row, (float) $r['total_keuntungan']);
             $row++;
         }
 
@@ -98,14 +102,19 @@ class LaporanController extends BaseController
         $sheet->mergeCells('A' . $row . ':D' . $row);
         $sheet->setCellValue('A' . $row, 'TOTAL');
         $sheet->setCellValue('E' . $row, $total);
-        $this->_styleTotalRow($sheet, 'A' . $row . ':G' . $row);
+        $sheet->setCellValue('H' . $row, $total_keuntungan);
+        $this->_styleTotalRow($sheet, 'A' . $row . ':H' . $row);
+
+        // Warnai kolom keuntungan header & total
+        $sheet->getStyle('H4')->getFont()->getColor()->setRGB('065F46');
+        $sheet->getStyle('H4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D1FAE5');
 
         // Format angka
         $numFmt = '#,##0';
-        foreach (['E', 'F', 'G'] as $col) {
+        foreach (['E', 'F', 'G', 'H'] as $col) {
             $sheet->getStyle($col . '5:' . $col . $row)->getNumberFormat()->setFormatCode($numFmt);
         }
-        $this->_styleDataRows($sheet, 'A5:G' . ($row - 1));
+        $this->_styleDataRows($sheet, 'A5:H' . ($row - 1));
         $this->_autoWidth($sheet, $cols);
 
         $this->_streamExcel($ss, 'Laporan_Penjualan_' . $dari . '_' . $sampai);
@@ -270,11 +279,16 @@ class LaporanController extends BaseController
     // ─────────────────────────────────────────────
     private function _queryPenjualan(string $dari, string $sampai): array
     {
-        return (new PenjualanModel())
-            ->where('tanggal_jual >=', $dari)
-            ->where('tanggal_jual <=', $sampai)
-            ->orderBy('tanggal_jual', 'ASC')
-            ->findAll();
+        return \Config\Database::connect()->query("
+            SELECT
+                p.*,
+                COALESCE(SUM((dp.harga_jual - dp.harga_beli) * dp.jumlah), 0) AS total_keuntungan
+            FROM penjualan p
+            LEFT JOIN detail_penjualan dp ON dp.id_penjualan = p.id
+            WHERE p.tanggal_jual >= ? AND p.tanggal_jual <= ?
+            GROUP BY p.id
+            ORDER BY p.tanggal_jual ASC
+        ", [$dari, $sampai])->getResultArray();
     }
 
     private function _queryStok(string $idKategori): array

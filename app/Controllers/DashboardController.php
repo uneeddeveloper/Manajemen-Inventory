@@ -30,15 +30,16 @@ class DashboardController extends BaseController
                         ->limit(5)->findAll();
 
         $data = [
-            'title'             => 'Dashboard',
-            'total_barang'      => $barangModel->countAll(),
-            'total_supplier'    => $supplierModel->countAll(),
-            'penjualan_hari_ini'  => $rekapHarian['total'] ?? 0,
-            'transaksi_hari_ini'  => $rekapHarian['jumlah_transaksi'] ?? 0,
-            'stok_minimum'      => $stokMinimumCount,
-            'barang_terlaris'   => $detailPenjualanModel->getBarangTerlaris(5),
-            'transaksi_terbaru' => $penjualanModel->orderBy('created_at', 'DESC')->limit(5)->findAll(),
-            'stok_menipis'      => $stokMenipis,
+            'title'                => 'Dashboard',
+            'total_barang'         => $barangModel->countAll(),
+            'total_supplier'       => $supplierModel->countAll(),
+            'penjualan_hari_ini'   => $rekapHarian['total'] ?? 0,
+            'transaksi_hari_ini'   => $rekapHarian['jumlah_transaksi'] ?? 0,
+            'keuntungan_hari_ini'  => $rekapHarian['total_keuntungan'] ?? 0,
+            'stok_minimum'         => $stokMinimumCount,
+            'barang_terlaris'      => $detailPenjualanModel->getBarangTerlaris(5),
+            'transaksi_terbaru'    => $penjualanModel->orderBy('created_at', 'DESC')->limit(5)->findAll(),
+            'stok_menipis'         => $stokMenipis,
         ];
 
         return view('dashboard/index', $data);

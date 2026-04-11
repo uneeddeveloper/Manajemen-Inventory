@@ -87,12 +87,14 @@ class StokMasukController extends BaseController
         $stokMasuk = $this->model->find($id);
         if (!$stokMasuk) return redirect()->to('stok-masuk')->with('error', 'Data tidak ditemukan.');
 
-        // Kembalikan stok
+        // Kurangi stok kembali via query builder langsung
         $details = $this->detailModel->where('id_stok_masuk', $id)->findAll();
-        $barangModel = new BarangModel();
+        $db      = \Config\Database::connect();
         foreach ($details as $d) {
-            $barangModel->set('stok', "stok - {$d['jumlah']}", false)
-                        ->where('id', $d['id_barang'])->update();
+            $db->table('barang')
+               ->where('id', (int) $d['id_barang'])
+               ->set('stok', 'stok - ' . (int)$d['jumlah'], false)
+               ->update();
         }
 
         $this->detailModel->where('id_stok_masuk', $id)->delete();

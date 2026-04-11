@@ -29,6 +29,29 @@
     </form>
 </div>
 
+<!-- Ringkasan Periode -->
+<?php if (!empty($rows)):
+    $margin_persen = ($total > 0) ? round(($total_keuntungan / $total) * 100, 1) : 0;
+?>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <p class="text-xs text-slate-400 font-medium mb-1">Total Penjualan</p>
+        <p class="text-xl font-bold text-slate-800">Rp <?= number_format($total, 0, ',', '.') ?></p>
+        <p class="text-xs text-slate-400 mt-1"><?= count($rows) ?> transaksi</p>
+    </div>
+    <div class="bg-emerald-50 rounded-2xl border border-emerald-100 shadow-sm p-5">
+        <p class="text-xs text-emerald-600 font-medium mb-1">Total Keuntungan</p>
+        <p class="text-xl font-bold text-emerald-700">Rp <?= number_format($total_keuntungan, 0, ',', '.') ?></p>
+        <p class="text-xs text-emerald-500 mt-1">Margin bersih periode ini</p>
+    </div>
+    <div class="bg-indigo-50 rounded-2xl border border-indigo-100 shadow-sm p-5">
+        <p class="text-xs text-indigo-600 font-medium mb-1">Rata-rata Margin</p>
+        <p class="text-xl font-bold text-indigo-700"><?= $margin_persen ?>%</p>
+        <p class="text-xs text-indigo-400 mt-1">Keuntungan / Total Penjualan</p>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Tabel -->
 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -50,12 +73,13 @@
                     <th class="text-right">Total Harga</th>
                     <th class="text-right">Bayar</th>
                     <th class="text-right">Kembalian</th>
+                    <th class="text-right" style="color:#059669">Keuntungan</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($rows)): ?>
                 <tr>
-                    <td colspan="7" class="text-center text-slate-400 py-10">
+                    <td colspan="8" class="text-center text-slate-400 py-10">
                         <i class="fas fa-inbox text-3xl mb-2 block"></i>Tidak ada data penjualan pada periode ini.
                     </td>
                 </tr>
@@ -69,6 +93,7 @@
                     <td class="text-right font-semibold">Rp <?= number_format($r['total_harga'], 0, ',', '.') ?></td>
                     <td class="text-right">Rp <?= number_format($r['bayar'], 0, ',', '.') ?></td>
                     <td class="text-right">Rp <?= number_format($r['kembalian'], 0, ',', '.') ?></td>
+                    <td class="text-right font-semibold text-emerald-600">Rp <?= number_format($r['total_keuntungan'], 0, ',', '.') ?></td>
                 </tr>
                 <?php endforeach ?>
                 <?php endif ?>
@@ -79,6 +104,7 @@
                     <td colspan="4" class="px-[18px] py-3 text-sm font-bold text-slate-700">TOTAL</td>
                     <td class="px-[18px] py-3 text-right font-bold text-indigo-700">Rp <?= number_format($total, 0, ',', '.') ?></td>
                     <td colspan="2"></td>
+                    <td class="px-[18px] py-3 text-right font-bold text-emerald-700">Rp <?= number_format($total_keuntungan, 0, ',', '.') ?></td>
                 </tr>
             </tfoot>
             <?php endif ?>

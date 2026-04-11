@@ -38,24 +38,34 @@ class PenjualanModel extends Model
     ];
     protected $skipValidation = false;
 
-    // Ambil semua penjualan dengan total item
+    // Ambil semua penjualan dengan total item dan total keuntungan
     public function getAllWithCount()
     {
-        return $this->select('penjualan.*, COUNT(detail_penjualan.id) as jumlah_item')
+        return $this->select('
+                    penjualan.*,
+                    COUNT(detail_penjualan.id) as jumlah_item,
+                    COALESCE(SUM((detail_penjualan.harga_jual - detail_penjualan.harga_beli) * detail_penjualan.jumlah), 0) as total_keuntungan
+                ')
                     ->join('detail_penjualan', 'detail_penjualan.id_penjualan = penjualan.id', 'left')
                     ->groupBy('penjualan.id')
                     ->orderBy('penjualan.tanggal_jual', 'DESC')
                     ->findAll();
     }
 
-    // Rekap penjualan per hari (untuk dashboard)
+    // Rekap penjualan per hari (untuk dashboard) — termasuk keuntungan
     public function rekapHarian($tanggal = null)
     {
         $tanggal = $tanggal ?? date('Y-m-d');
-        return $this->selectSum('total_harga', 'total')
-                    ->selectCount('id', 'jumlah_transaksi')
-                    ->where('tanggal_jual', $tanggal)
-                    ->first();
+
+        return $this->db->query("
+            SELECT
+                COALESCE(SUM(p.total_harga), 0)                                                           AS total,
+                COUNT(DISTINCT p.id)                                                                       AS jumlah_transaksi,
+                COALESCE(SUM((dp.harga_jual - dp.harga_beli) * dp.jumlah), 0)                            AS total_keuntungan
+            FROM penjualan p
+            LEFT JOIN detail_penjualan dp ON dp.id_penjualan = p.id
+            WHERE p.tanggal_jual = ?
+        ", [$tanggal])->getRowArray();
     }
 
     // Rekap penjualan per bulan

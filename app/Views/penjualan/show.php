@@ -39,21 +39,29 @@
                 <thead>
                     <tr class="bg-slate-50">
                         <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Barang</th>
-                        <th class="text-center px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Jumlah</th>
-                        <th class="text-right px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Harga</th>
-                        <th class="text-right px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Subtotal</th>
+                        <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Jml</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Harga Beli</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Harga Jual</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Subtotal</th>
+                        <th class="text-right px-6 py-3 text-xs font-semibold text-emerald-600 uppercase">Keuntungan</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    <?php foreach ($details as $d): ?>
+                    <?php foreach ($details as $d):
+                        $keuntungan_item = ($d['harga_jual'] - $d['harga_beli']) * $d['jumlah'];
+                    ?>
                     <tr>
                         <td class="px-6 py-3.5">
                             <p class="font-medium text-slate-800"><?= esc($d['nama_barang']) ?></p>
                             <p class="text-xs text-slate-400 font-mono"><?= esc($d['kode_barang']) ?></p>
                         </td>
-                        <td class="px-6 py-3.5 text-center text-slate-700"><?= number_format($d['jumlah']) ?> <?= esc($d['satuan']) ?></td>
-                        <td class="px-6 py-3.5 text-right text-slate-700">Rp <?= number_format($d['harga_jual'], 0, ',', '.') ?></td>
-                        <td class="px-6 py-3.5 text-right font-semibold text-slate-800">Rp <?= number_format($d['subtotal'], 0, ',', '.') ?></td>
+                        <td class="px-4 py-3.5 text-center text-slate-700"><?= number_format($d['jumlah']) ?> <?= esc($d['satuan']) ?></td>
+                        <td class="px-4 py-3.5 text-right text-slate-500 text-xs">Rp <?= number_format($d['harga_beli'], 0, ',', '.') ?></td>
+                        <td class="px-4 py-3.5 text-right text-slate-700">Rp <?= number_format($d['harga_jual'], 0, ',', '.') ?></td>
+                        <td class="px-4 py-3.5 text-right font-semibold text-slate-800">Rp <?= number_format($d['subtotal'], 0, ',', '.') ?></td>
+                        <td class="px-6 py-3.5 text-right font-semibold <?= $keuntungan_item >= 0 ? 'text-emerald-600' : 'text-rose-500' ?>">
+                            Rp <?= number_format($keuntungan_item, 0, ',', '.') ?>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -72,7 +80,26 @@
             </div>
             <div class="flex justify-between text-sm pt-2 border-t border-slate-200">
                 <span class="font-semibold text-slate-700">Kembalian</span>
-                <span class="font-bold text-lg text-emerald-600">Rp <?= number_format($penjualan['kembalian'], 0, ',', '.') ?></span>
+                <span class="font-bold text-lg text-slate-700">Rp <?= number_format($penjualan['kembalian'], 0, ',', '.') ?></span>
+            </div>
+
+            <!-- Keuntungan bersih -->
+            <div class="flex justify-between items-center text-sm pt-3 mt-1 border-t-2 border-emerald-200">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-arrow-trend-up text-emerald-600 text-xs"></i>
+                    </div>
+                    <span class="font-bold text-emerald-700">Keuntungan Transaksi</span>
+                </div>
+                <?php
+                    $margin_trx = ($penjualan['total_harga'] > 0)
+                        ? round(($total_keuntungan / $penjualan['total_harga']) * 100, 1)
+                        : 0;
+                ?>
+                <div class="text-right">
+                    <span class="font-bold text-xl text-emerald-600">Rp <?= number_format($total_keuntungan, 0, ',', '.') ?></span>
+                    <span class="ml-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold"><?= $margin_trx ?>% margin</span>
+                </div>
             </div>
         </div>
     </div>

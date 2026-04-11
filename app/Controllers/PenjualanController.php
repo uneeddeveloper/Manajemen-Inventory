@@ -87,10 +87,18 @@ class PenjualanController extends BaseController
         $penjualan = $this->model->find($id);
         if (!$penjualan) return redirect()->to('penjualan')->with('error', 'Data tidak ditemukan.');
 
+        $details = $this->detailModel->getByPenjualan($id);
+
+        $totalKeuntungan = array_sum(array_map(
+            fn($d) => ($d['harga_jual'] - $d['harga_beli']) * $d['jumlah'],
+            $details
+        ));
+
         return view('penjualan/show', [
-            'title'     => 'Detail Penjualan',
-            'penjualan' => $penjualan,
-            'details'   => $this->detailModel->getByPenjualan($id),
+            'title'            => 'Detail Penjualan',
+            'penjualan'        => $penjualan,
+            'details'          => $details,
+            'total_keuntungan' => $totalKeuntungan,
         ]);
     }
 
@@ -99,12 +107,14 @@ class PenjualanController extends BaseController
         $penjualan = $this->model->find($id);
         if (!$penjualan) return redirect()->to('penjualan')->with('error', 'Data tidak ditemukan.');
 
-        // Kembalikan stok
+        // Kembalikan stok via query builder langsung
         $details = $this->detailModel->where('id_penjualan', $id)->findAll();
-        $barangModel = new BarangModel();
+        $db      = \Config\Database::connect();
         foreach ($details as $d) {
-            $barangModel->set('stok', "stok + {$d['jumlah']}", false)
-                        ->where('id', $d['id_barang'])->update();
+            $db->table('barang')
+               ->where('id', (int) $d['id_barang'])
+               ->set('stok', 'stok + ' . (int)$d['jumlah'], false)
+               ->update();
         }
 
         $this->detailModel->where('id_penjualan', $id)->delete();

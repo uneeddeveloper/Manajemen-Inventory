@@ -13,9 +13,15 @@ class BarangModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'kode_barang', 'nama_barang', 'id_kategori',
-        'satuan', 'harga_beli', 'harga_jual',
-        'stok', 'stok_minimum', 'keterangan',
+        'kode_barang',
+        'nama_barang',
+        'id_kategori',
+        'satuan',
+        'harga_beli',
+        'harga_jual',
+        'stok',
+        'stok_minimum',
+        'keterangan',
     ];
 
     // Dates
@@ -33,7 +39,7 @@ class BarangModel extends Model
         'harga_beli'  => 'required|decimal',
         'harga_jual'  => 'required|decimal',
         'stok'        => 'required|integer',
-        'stok_minimum'=> 'permit_empty|integer',
+        'stok_minimum' => 'permit_empty|integer',
     ];
     protected $validationMessages = [
         'kode_barang' => [
@@ -65,26 +71,26 @@ class BarangModel extends Model
     public function getBarangWithKategori()
     {
         return $this->select('barang.*, kategori.nama_kategori')
-                    ->join('kategori', 'kategori.id = barang.id_kategori', 'left')
-                    ->findAll();
+            ->join('kategori', 'kategori.id = barang.id_kategori', 'left')
+            ->findAll();
     }
 
     // Ambil barang dengan stok di bawah minimum (untuk alert dashboard)
     public function getStokMinimum()
     {
         return $this->select('barang.*, kategori.nama_kategori')
-                    ->join('kategori', 'kategori.id = barang.id_kategori', 'left')
-                    ->where('barang.stok <=', $this->db->quoteLiteral('barang.stok_minimum'), false)
-                    ->where('barang.stok_minimum >', 0)
-                    ->findAll();
+            ->join('kategori', 'kategori.id = barang.id_kategori', 'left')
+            ->where('barang.stok <=', $this->db->quoteLiteral('barang.stok_minimum'), false)
+            ->where('barang.stok_minimum >', 0)
+            ->findAll();
     }
 
     // Generate kode barang otomatis
     public function generateKode()
     {
         $last = $this->select('kode_barang')
-                     ->orderBy('id', 'DESC')
-                     ->first();
+            ->orderBy('id', 'DESC')
+            ->first();
 
         if (!$last) {
             return 'BRG-001';

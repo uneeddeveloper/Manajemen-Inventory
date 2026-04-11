@@ -4,7 +4,7 @@
 <!-- Stat Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
 
-    <!-- Penjualan -->
+    <!-- Penjualan Hari Ini -->
     <div class="bg-white rounded-2xl p-5 border border-slate-100 card-lift shadow-sm">
         <div class="flex items-start justify-between mb-4">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -17,7 +17,25 @@
         <p class="text-xs text-slate-400 mt-1 font-medium">Penjualan Hari Ini</p>
     </div>
 
-    <!-- Barang -->
+    <!-- Keuntungan Hari Ini -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-100 card-lift shadow-sm">
+        <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                 style="background:linear-gradient(135deg,#10b981,#34d399)">
+                <i class="fas fa-arrow-trend-up text-white text-sm"></i>
+            </div>
+            <?php
+                $margin = ($penjualan_hari_ini > 0)
+                    ? round(($keuntungan_hari_ini / $penjualan_hari_ini) * 100, 1)
+                    : 0;
+            ?>
+            <span class="badge bg-emerald-50 text-emerald-600"><?= $margin ?>% margin</span>
+        </div>
+        <p class="text-[22px] font-bold text-emerald-600 leading-tight">Rp <?= number_format($keuntungan_hari_ini, 0, ',', '.') ?></p>
+        <p class="text-xs text-slate-400 mt-1 font-medium">Keuntungan Hari Ini</p>
+    </div>
+
+    <!-- Jenis Barang -->
     <div class="bg-white rounded-2xl p-5 border border-slate-100 card-lift shadow-sm">
         <div class="flex items-start justify-between mb-4">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -28,19 +46,6 @@
         </div>
         <p class="text-[22px] font-bold text-slate-800 leading-tight"><?= number_format($total_barang) ?></p>
         <p class="text-xs text-slate-400 mt-1 font-medium">Jenis Barang</p>
-    </div>
-
-    <!-- Supplier -->
-    <div class="bg-white rounded-2xl p-5 border border-slate-100 card-lift shadow-sm">
-        <div class="flex items-start justify-between mb-4">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                 style="background:linear-gradient(135deg,#10b981,#34d399)">
-                <i class="fas fa-truck text-white text-sm"></i>
-            </div>
-            <span class="badge bg-emerald-50 text-emerald-600">Aktif</span>
-        </div>
-        <p class="text-[22px] font-bold text-slate-800 leading-tight"><?= number_format($total_supplier) ?></p>
-        <p class="text-xs text-slate-400 mt-1 font-medium">Total Supplier</p>
     </div>
 
     <!-- Stok Menipis -->

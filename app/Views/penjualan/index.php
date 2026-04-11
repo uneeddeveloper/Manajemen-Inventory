@@ -21,12 +21,13 @@
                     <th class="text-left">Pembeli</th>
                     <th class="text-center">Item</th>
                     <th class="text-right">Total</th>
+                    <th class="text-right">Keuntungan</th>
                     <th class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if(empty($penjualans)): ?>
-                <tr><td colspan="6" class="py-16 text-center">
+                <tr><td colspan="7" class="py-16 text-center">
                     <i class="fas fa-cash-register text-4xl text-slate-200 block mb-3"></i>
                     <p class="text-slate-400 text-sm">Belum ada transaksi penjualan</p>
                 </td></tr>
@@ -44,6 +45,9 @@
                         <span class="badge bg-slate-100 text-slate-600"><?= $p['jumlah_item'] ?> item</span>
                     </td>
                     <td class="text-right font-bold text-slate-800">Rp <?= number_format($p['total_harga'],0,',','.') ?></td>
+                    <td class="text-right">
+                        <span class="font-semibold text-emerald-600">Rp <?= number_format($p['total_keuntungan'],0,',','.') ?></span>
+                    </td>
                     <td class="text-center">
                         <div class="flex items-center justify-center gap-1.5">
                             <a href="<?= base_url('penjualan/show/'.$p['id']) ?>"
