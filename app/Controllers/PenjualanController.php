@@ -19,9 +19,41 @@ class PenjualanController extends BaseController
 
     public function index()
     {
+        $perPage = 10;
+        $search  = $this->request->getGet('search');
+        $dari    = $this->request->getGet('dari');
+        $sampai  = $this->request->getGet('sampai');
+
+        $builder = $this->model->select('
+                    penjualan.*,
+                    COUNT(detail_penjualan.id) as jumlah_item,
+                    COALESCE(SUM((detail_penjualan.harga_jual - detail_penjualan.harga_beli) * detail_penjualan.jumlah), 0) as total_keuntungan
+                ')
+                ->join('detail_penjualan', 'detail_penjualan.id_penjualan = penjualan.id', 'left')
+                ->groupBy('penjualan.id')
+                ->orderBy('penjualan.tanggal_jual', 'DESC');
+
+        if ($search) {
+            $builder->groupStart()
+                    ->like('penjualan.no_transaksi', $search)
+                    ->orLike('penjualan.nama_pembeli', $search)
+                    ->groupEnd();
+        }
+        if ($dari)   $builder->where('penjualan.tanggal_jual >=', $dari);
+        if ($sampai) $builder->where('penjualan.tanggal_jual <=', $sampai);
+
+        $total      = $builder->countAllResults(false);
+        $penjualans = $builder->paginate($perPage, 'default');
+        $pager      = $this->model->pager;
+
         return view('penjualan/index', [
             'title'      => 'Transaksi Penjualan',
-            'penjualans' => $this->model->getAllWithCount(),
+            'penjualans' => $penjualans,
+            'pager'      => $pager,
+            'total'      => $total,
+            'search'     => $search,
+            'dari'       => $dari,
+            'sampai'     => $sampai,
         ]);
     }
 
@@ -96,6 +128,26 @@ class PenjualanController extends BaseController
 
         return view('penjualan/show', [
             'title'            => 'Detail Penjualan',
+            'penjualan'        => $penjualan,
+            'details'          => $details,
+            'total_keuntungan' => $totalKeuntungan,
+        ]);
+    }
+
+    public function invoice($id)
+    {
+        $penjualan = $this->model->find($id);
+        if (!$penjualan) return redirect()->to('penjualan')->with('error', 'Data tidak ditemukan.');
+
+        $details = $this->detailModel->getByPenjualan($id);
+
+        $totalKeuntungan = array_sum(array_map(
+            fn($d) => ($d['harga_jual'] - $d['harga_beli']) * $d['jumlah'],
+            $details
+        ));
+
+        return view('penjualan/invoice', [
+            'title'            => 'Invoice ' . $penjualan['no_transaksi'],
             'penjualan'        => $penjualan,
             'details'          => $details,
             'total_keuntungan' => $totalKeuntungan,

@@ -18,9 +18,36 @@ class BarangController extends BaseController
 
     public function index()
     {
+        $perPage  = 10;
+        $search   = $this->request->getGet('search');
+        $kategori = $this->request->getGet('kategori');
+
+        $builder = $this->model->select('barang.*, kategori.nama_kategori')
+                               ->join('kategori', 'kategori.id = barang.id_kategori', 'left')
+                               ->orderBy('barang.nama_barang');
+
+        if ($search) {
+            $builder->groupStart()
+                    ->like('barang.nama_barang', $search)
+                    ->orLike('barang.kode_barang', $search)
+                    ->groupEnd();
+        }
+        if ($kategori) {
+            $builder->where('barang.id_kategori', $kategori);
+        }
+
+        $total   = $builder->countAllResults(false);
+        $barangs = $builder->paginate($perPage, 'default');
+        $pager   = $this->model->pager;
+
         return view('barang/index', [
-            'title'   => 'Data Barang',
-            'barangs' => $this->model->getBarangWithKategori(),
+            'title'     => 'Data Barang',
+            'barangs'   => $barangs,
+            'pager'     => $pager,
+            'total'     => $total,
+            'search'    => $search,
+            'kategori'  => $kategori,
+            'kategoris' => $this->kategoriModel->orderBy('nama_kategori')->findAll(),
         ]);
     }
 

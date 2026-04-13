@@ -20,9 +20,36 @@ class StokMasukController extends BaseController
 
     public function index()
     {
+        $perPage = 10;
+        $search  = $this->request->getGet('search');
+        $dari    = $this->request->getGet('dari');
+        $sampai  = $this->request->getGet('sampai');
+
+        $builder = $this->model->select('stok_masuk.*, supplier.nama_supplier')
+                               ->join('supplier', 'supplier.id = stok_masuk.id_supplier', 'left')
+                               ->orderBy('stok_masuk.tanggal_masuk', 'DESC');
+
+        if ($search) {
+            $builder->groupStart()
+                    ->like('stok_masuk.no_transaksi', $search)
+                    ->orLike('supplier.nama_supplier', $search)
+                    ->groupEnd();
+        }
+        if ($dari)   $builder->where('stok_masuk.tanggal_masuk >=', $dari);
+        if ($sampai) $builder->where('stok_masuk.tanggal_masuk <=', $sampai);
+
+        $total       = $builder->countAllResults(false);
+        $stok_masuks = $builder->paginate($perPage, 'default');
+        $pager       = $this->model->pager;
+
         return view('stok_masuk/index', [
             'title'       => 'Stok Masuk',
-            'stok_masuks' => $this->model->getWithSupplier(),
+            'stok_masuks' => $stok_masuks,
+            'pager'       => $pager,
+            'total'       => $total,
+            'search'      => $search,
+            'dari'        => $dari,
+            'sampai'      => $sampai,
         ]);
     }
 

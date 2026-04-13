@@ -8,6 +8,11 @@
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <h2 class="font-semibold text-slate-800">Detail Penjualan</h2>
             <div class="flex items-center gap-2">
+                <a href="<?= base_url('penjualan/invoice/' . $penjualan['id']) ?>" target="_blank"
+                   class="text-xs px-3 py-1.5 rounded-lg font-medium text-white flex items-center gap-1.5 transition"
+                   style="background:linear-gradient(135deg,#4f46e5,#6366f1)">
+                    <i class="fas fa-file-invoice"></i> Invoice A4
+                </a>
                 <button onclick="window.print()"
                         class="text-xs px-3 py-1.5 rounded-lg font-medium text-white flex items-center gap-1.5 transition"
                         style="background:linear-gradient(135deg,#10b981,#059669)">

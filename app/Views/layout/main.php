@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -133,6 +134,11 @@
                    class="nav-link <?= str_starts_with(uri_string(), 'penjualan') ? 'active' : '' ?>">
                     <i class="fas fa-cash-register"></i>
                     <span x-show="open" x-cloak>Penjualan</span>
+                </a>
+                <a href="<?= base_url('retur') ?>"
+                   class="nav-link <?= str_starts_with(uri_string(), 'retur') ? 'active' : '' ?>">
+                    <i class="fas fa-rotate-left"></i>
+                    <span x-show="open" x-cloak>Retur & Penyesuaian</span>
                 </a>
             </div>
 

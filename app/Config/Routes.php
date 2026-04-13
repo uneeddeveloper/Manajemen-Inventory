@@ -52,7 +52,8 @@ $routes->get('stok-masuk/delete/(:num)', 'StokMasukController::delete/$1');
 $routes->get('penjualan',               'PenjualanController::index');
 $routes->get('penjualan/create',        'PenjualanController::create');
 $routes->post('penjualan/store',        'PenjualanController::store');
-$routes->get('penjualan/show/(:num)',   'PenjualanController::show/$1');
+$routes->get('penjualan/show/(:num)',    'PenjualanController::show/$1');
+$routes->get('penjualan/invoice/(:num)','PenjualanController::invoice/$1');
 $routes->get('penjualan/delete/(:num)', 'PenjualanController::delete/$1');
 
 // Laporan
@@ -67,5 +68,21 @@ $routes->get('laporan/barang-masuk',     'LaporanController::barangMasuk');
 $routes->get('laporan/barang-masuk/pdf', 'LaporanController::barangMasukPdf');
 $routes->get('laporan/barang-masuk/excel', 'LaporanController::barangMasukExcel');
 
+// Retur Penjualan
+$routes->get('retur',                        'ReturController::index');
+$routes->get('retur/create',                 'ReturController::create');
+$routes->post('retur/store',                 'ReturController::store');
+$routes->get('retur/show/(:num)',            'ReturController::show/$1');
+$routes->get('retur/delete/(:num)',          'ReturController::delete/$1');
+
+// Penyesuaian Stok
+$routes->get('retur/penyesuaian',            'ReturController::penyesuaian');
+$routes->get('retur/penyesuaian/create',     'ReturController::penyesuaianCreate');
+$routes->post('retur/penyesuaian/store',     'ReturController::penyesuaianStore');
+
 // API untuk AJAX
-$routes->get('api/barang/(:num)', 'BarangController::getHarga/$1');
+$routes->get('api/barang/(:num)',            'BarangController::getHarga/$1');
+$routes->get('api/retur/detail/(:num)',      'ReturController::getDetailPenjualan/$1');
+
+// API Dashboard Charts
+$routes->get('api/dashboard/chart',         'DashboardController::chartData');

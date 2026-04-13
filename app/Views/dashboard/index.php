@@ -153,6 +153,52 @@
     </div>
 </div>
 
+<!-- ===== CHARTS ROW ===== -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
+
+    <!-- Grafik Penjualan Harian (line) -->
+    <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-1.5 h-5 bg-blue-500 rounded-full"></div>
+                <h3 class="font-semibold text-slate-800 text-[14px]">Tren Penjualan & Keuntungan</h3>
+            </div>
+            <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1" id="chart-mode-btns">
+                <button onclick="switchChartMode('7d')" id="btn-7d"
+                        class="text-[11px] font-semibold px-3 py-1 rounded-md transition bg-white shadow text-slate-800">7 Hari</button>
+                <button onclick="switchChartMode('30d')" id="btn-30d"
+                        class="text-[11px] font-semibold px-3 py-1 rounded-md transition text-slate-400 hover:text-slate-600">30 Hari</button>
+            </div>
+        </div>
+        <div class="p-4" style="height:230px; position:relative">
+            <canvas id="chartHarian"></canvas>
+        </div>
+    </div>
+
+    <!-- Grafik Kategori (donut) -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
+            <div class="w-1.5 h-5 bg-purple-500 rounded-full"></div>
+            <h3 class="font-semibold text-slate-800 text-[14px]">Penjualan per Kategori</h3>
+        </div>
+        <div class="p-4 flex items-center justify-center" style="height:230px; position:relative">
+            <canvas id="chartKategori"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Grafik Tren Bulanan (bar) -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+    <div class="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
+        <div class="w-1.5 h-5 bg-emerald-500 rounded-full"></div>
+        <h3 class="font-semibold text-slate-800 text-[14px]">Perbandingan Penjualan & Keuntungan Bulanan</h3>
+        <span class="text-[11px] text-slate-400 ml-1">(12 bulan terakhir)</span>
+    </div>
+    <div class="p-4" style="height:220px; position:relative">
+        <canvas id="chartBulanan"></canvas>
+    </div>
+</div>
+
 <!-- Row 2 -->
 <div class="grid grid-cols-1 xl:grid-cols-5 gap-4 mb-4">
 
@@ -276,5 +322,169 @@
     </table>
 </div>
 <?php endif; ?>
+
+<script>
+(function () {
+    var chartHarian   = null;
+    var chartKategori = null;
+    var chartBulanan  = null;
+    var currentMode   = '7d';
+
+    var CHART_API = '<?= base_url('api/dashboard/chart') ?>';
+
+    var rupiah = function (v) {
+        if (v >= 1000000) return 'Rp ' + (v / 1000000).toFixed(1) + 'jt';
+        if (v >= 1000)    return 'Rp ' + (v / 1000).toFixed(0) + 'rb';
+        return 'Rp ' + v;
+    };
+
+    function loadCharts(mode) {
+        fetch(CHART_API + '?mode=' + mode)
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                renderHarian(data.harian);
+                renderKategori(data.kategori);
+                renderBulanan(data.bulanan);
+            })
+            .catch(function (e) { console.error('Chart API error:', e); });
+    }
+
+    function renderHarian(d) {
+        var ctx = document.getElementById('chartHarian');
+        if (!ctx) return;
+        if (chartHarian) chartHarian.destroy();
+        chartHarian = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: d.labels,
+                datasets: [
+                    {
+                        label: 'Penjualan',
+                        data: d.totals,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79,70,229,.09)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: .4,
+                        pointBackgroundColor: '#4f46e5',
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                    },
+                    {
+                        label: 'Keuntungan',
+                        data: d.profits,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,.07)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: .4,
+                        borderDash: [5, 3],
+                        pointBackgroundColor: '#10b981',
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 11 }, usePointStyle: true, padding: 16 } },
+                    tooltip: { callbacks: { label: function (c) { return ' ' + rupiah(c.raw); } } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 }, callback: rupiah } }
+                }
+            }
+        });
+    }
+
+    function renderKategori(d) {
+        var ctx = document.getElementById('chartKategori');
+        if (!ctx) return;
+        if (chartKategori) chartKategori.destroy();
+
+        var hasData = d.totals.some(function (v) { return v > 0; });
+        var colors  = ['#4f46e5','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+
+        chartKategori = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: hasData ? d.labels : ['Belum ada data'],
+                datasets: [{
+                    data: hasData ? d.totals : [1],
+                    backgroundColor: hasData ? colors : ['#e2e8f0'],
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    hoverOffset: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 10 }, usePointStyle: true, padding: 10 } },
+                    tooltip: { callbacks: { label: function (c) { return hasData ? ' ' + rupiah(c.raw) : ' Belum ada data'; } } }
+                }
+            }
+        });
+    }
+
+    function renderBulanan(d) {
+        var ctx = document.getElementById('chartBulanan');
+        if (!ctx) return;
+        if (chartBulanan) chartBulanan.destroy();
+        chartBulanan = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: d.labels,
+                datasets: [
+                    {
+                        label: 'Penjualan',
+                        data: d.totals,
+                        backgroundColor: 'rgba(79,70,229,.75)',
+                        borderRadius: 5,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Keuntungan',
+                        data: d.profits,
+                        backgroundColor: 'rgba(16,185,129,.75)',
+                        borderRadius: 5,
+                        borderSkipped: false,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 11 }, usePointStyle: true, padding: 16 } },
+                    tooltip: { callbacks: { label: function (c) { return ' ' + rupiah(c.raw); } } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 }, callback: rupiah } }
+                }
+            }
+        });
+    }
+
+    // Toggle 7 hari / 30 hari
+    window.switchChartMode = function (mode) {
+        currentMode = mode;
+        document.getElementById('btn-7d').className  = 'text-[11px] font-semibold px-3 py-1 rounded-md transition ' + (mode === '7d'  ? 'bg-white shadow text-slate-800' : 'text-slate-400 hover:text-slate-600');
+        document.getElementById('btn-30d').className = 'text-[11px] font-semibold px-3 py-1 rounded-md transition ' + (mode === '30d' ? 'bg-white shadow text-slate-800' : 'text-slate-400 hover:text-slate-600');
+        loadCharts(mode);
+    };
+
+    // Canvas sudah ada di DOM saat script ini dieksekusi, panggil langsung
+    loadCharts(currentMode);
+})();
+</script>
 
 <?= $this->endSection() ?>
