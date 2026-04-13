@@ -161,14 +161,6 @@
             </div>
         </nav>
 
-        <!-- Bottom toggle -->
-        <div class="p-3 border-t border-white/5 flex-shrink-0">
-            <button @click="open = !open"
-                    class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition text-sm">
-                <i class="fas" :class="open ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
-                <span x-show="open" x-cloak class="text-xs">Sembunyikan</span>
-            </button>
-        </div>
     </aside>
 
     <!-- ===== MAIN ===== -->
@@ -178,12 +170,18 @@
         <header class="bg-white border-b border-slate-200/80 px-6 h-[62px] flex items-center justify-between flex-shrink-0 gap-4">
 
             <!-- Left: hamburger + breadcrumb -->
-            <div class="flex items-center gap-4 min-w-0">
-                <button @click="open = !open" class="text-slate-400 hover:text-slate-600 transition lg:hidden">
-                    <i class="fas fa-bars text-lg"></i>
+            <div class="flex items-center gap-3 min-w-0">
+                <button @click="open = !open"
+                        class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition active:scale-95 flex-shrink-0"
+                        title="Toggle Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="4.5" width="16" height="2" rx="1" fill="currentColor"/>
+                        <rect x="2" y="9" width="11" height="2" rx="1" fill="currentColor" opacity="0.7"/>
+                        <rect x="2" y="13.5" width="16" height="2" rx="1" fill="currentColor"/>
+                    </svg>
                 </button>
                 <div class="min-w-0">
-                    <h1 class="text-[15px] font-700 text-slate-800 truncate font-semibold"><?= $title ?? 'Dashboard' ?></h1>
+                    <h1 class="text-[15px] font-semibold text-slate-800 truncate"><?= $title ?? 'Dashboard' ?></h1>
                     <p class="text-[11px] text-slate-400 hidden sm:block"><?= date('l, d F Y') ?></p>
                 </div>
             </div>
