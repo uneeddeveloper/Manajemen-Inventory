@@ -49,11 +49,10 @@
                                class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition">
                                 <i class="fas fa-pen text-xs"></i>
                             </a>
-                            <a href="<?= base_url('supplier/delete/'.$s['id']) ?>"
-                               onclick="return confirm('Hapus supplier ini?')"
+                            <button onclick="confirmDelete('<?= base_url('supplier/delete/'.$s['id']) ?>','Hapus supplier ini?')"
                                class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 flex items-center justify-center transition">
                                 <i class="fas fa-trash text-xs"></i>
-                            </a>
+                            </button>
                         </div>
                     </td>
                 </tr>

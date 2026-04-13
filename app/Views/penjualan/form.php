@@ -58,21 +58,54 @@
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="border-b border-slate-100">
                                     <td class="px-4 py-2.5">
-                                        <select :name="`detail[${index}][id_barang]`"
-                                                @change="pilihBarang(index,$event)" class="inp py-2 text-[13px]">
-                                            <option value="">-- Pilih Barang --</option>
-                                            <?php foreach($barangs as $b): ?>
-                                            <option value="<?= $b['id'] ?>"
-                                                    data-harga="<?= $b['harga_jual'] ?>"
-                                                    data-stok="<?= $b['stok'] ?>"
-                                                    data-satuan="<?= esc($b['satuan']) ?>">
-                                                <?= esc($b['nama_barang']) ?> (Stok: <?= $b['stok'] ?> <?= $b['satuan'] ?>)
-                                            </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <!-- Searchable Dropdown Trigger -->
+                                        <div class="inp py-2 text-[13px] flex items-center cursor-pointer gap-2 select-none"
+                                             @click.stop="toggleDropdown(index, $el)">
+                                            <span class="flex-1 truncate"
+                                                  :class="item.id_barang ? 'text-slate-800' : 'text-slate-400'"
+                                                  x-text="item.id_barang ? item.nama_barang : '-- Pilih Barang --'"></span>
+                                            <i class="fas fa-chevron-down text-[10px] text-slate-400 shrink-0 transition-transform duration-200"
+                                               :class="item.dropdownOpen ? 'rotate-180' : ''"></i>
+                                        </div>
+                                        <input type="hidden" :name="`detail[${index}][id_barang]`" :value="item.id_barang">
                                         <p class="text-[11px] text-emerald-600 mt-1 pl-1 font-medium" x-show="item.stok>0">
                                             Stok: <span x-text="item.stok+' '+item.satuan"></span>
                                         </p>
+                                        <!-- Dropdown Panel (teleported to body agar tidak terpotong overflow) -->
+                                        <template x-teleport="body">
+                                            <div x-show="item.dropdownOpen"
+                                                 @click.outside="item.dropdownOpen = false; item.searchText = ''"
+                                                 :style="`top:${item.dropTop}px; left:${item.dropLeft}px; width:${item.dropWidth}px`"
+                                                 class="fixed z-[9999] bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden"
+                                                 style="min-width:240px">
+                                                <div class="p-2 border-b border-slate-100 bg-slate-50">
+                                                    <div class="relative">
+                                                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                                        <input type="text" x-model="item.searchText"
+                                                               placeholder="Ketik nama barang..."
+                                                               class="w-full pl-8 pr-3 py-1.5 text-[12px] border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300"
+                                                               @click.stop
+                                                               x-effect="item.dropdownOpen && $nextTick(() => $el.focus())">
+                                                    </div>
+                                                </div>
+                                                <ul class="max-h-52 overflow-y-auto">
+                                                    <template x-for="b in barangs.filter(b => b.nama.toLowerCase().includes((item.searchText||'').toLowerCase()))" :key="b.id">
+                                                        <li @click="selectBarang(index, b)"
+                                                            class="px-4 py-2.5 cursor-pointer text-[12px] flex items-center justify-between border-b border-slate-50 last:border-0 transition-colors"
+                                                            :class="item.id_barang == b.id ? 'bg-emerald-50' : 'hover:bg-slate-50'">
+                                                            <span x-text="b.nama" class="font-medium truncate mr-3"
+                                                                  :class="item.id_barang == b.id ? 'text-emerald-700' : 'text-slate-700'"></span>
+                                                            <span x-text="b.stok + ' ' + b.satuan"
+                                                                  class="text-slate-400 text-[11px] shrink-0 tabular-nums"></span>
+                                                        </li>
+                                                    </template>
+                                                    <li x-show="barangs.filter(b => b.nama.toLowerCase().includes((item.searchText||'').toLowerCase())).length === 0"
+                                                        class="px-4 py-4 text-[12px] text-slate-400 text-center italic">
+                                                        <i class="fas fa-search mr-1 text-[10px]"></i> Barang tidak ditemukan
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </template>
                                     </td>
                                     <td class="px-4 py-2.5">
                                         <input type="number" :name="`detail[${index}][jumlah]`"
@@ -151,22 +184,46 @@
 <script>
 function penjualanForm() {
     return {
-        items: [{id_barang:'',jumlah:1,harga_jual:0,subtotal:0,stok:0,satuan:''}],
+        barangs: <?= json_encode(array_map(fn($b) => [
+            'id'     => (string)$b['id'],
+            'nama'   => $b['nama_barang'],
+            'harga'  => (float)$b['harga_jual'],
+            'stok'   => (int)$b['stok'],
+            'satuan' => $b['satuan'],
+        ], $barangs)) ?>,
+        items: [{id_barang:'',jumlah:1,harga_jual:0,subtotal:0,stok:0,satuan:'',nama_barang:'',dropdownOpen:false,searchText:'',dropTop:0,dropLeft:0,dropWidth:0}],
         bayar: 0,
         get total() { return this.items.reduce((s,i)=>s+(i.subtotal||0),0); },
         get kembalian() { return this.bayar-this.total; },
-        tambahBaris() { this.items.push({id_barang:'',jumlah:1,harga_jual:0,subtotal:0,stok:0,satuan:''}); },
+        tambahBaris() {
+            this.items.push({id_barang:'',jumlah:1,harga_jual:0,subtotal:0,stok:0,satuan:'',nama_barang:'',dropdownOpen:false,searchText:'',dropTop:0,dropLeft:0,dropWidth:0});
+        },
         hapusBaris(i) { if(this.items.length>1) this.items.splice(i,1); },
-        pilihBarang(i,e) {
-            const o=e.target.selectedOptions[0];
-            this.items[i].harga_jual=parseFloat(o.dataset.harga||0);
-            this.items[i].stok=parseInt(o.dataset.stok||0);
-            this.items[i].satuan=o.dataset.satuan||'';
+        toggleDropdown(i, el) {
+            const isOpen = this.items[i].dropdownOpen;
+            this.items.forEach(it => { it.dropdownOpen = false; it.searchText = ''; });
+            if (!isOpen) {
+                const r = el.getBoundingClientRect();
+                const dropH = 280;
+                this.items[i].dropTop   = (window.innerHeight - r.bottom > dropH || r.top < dropH) ? r.bottom + 4 : r.top - dropH - 4;
+                this.items[i].dropLeft  = r.left;
+                this.items[i].dropWidth = r.width;
+                this.items[i].dropdownOpen = true;
+            }
+        },
+        selectBarang(i, b) {
+            this.items[i].id_barang    = b.id;
+            this.items[i].nama_barang  = b.nama;
+            this.items[i].harga_jual   = b.harga;
+            this.items[i].stok         = b.stok;
+            this.items[i].satuan       = b.satuan;
+            this.items[i].dropdownOpen = false;
+            this.items[i].searchText   = '';
             this.hitungSubtotal(i);
         },
         hitungSubtotal(i) {
-            const it=this.items[i];
-            it.subtotal=(it.jumlah||0)*(it.harga_jual||0);
+            const it = this.items[i];
+            it.subtotal = (it.jumlah||0) * (it.harga_jual||0);
         },
         fmt(n) { return new Intl.NumberFormat('id-ID').format(n||0); }
     }

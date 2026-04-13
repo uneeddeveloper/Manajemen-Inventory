@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -213,45 +214,45 @@
                 <div class="w-px h-6 bg-slate-200"></div>
 
                 <!-- Logout -->
-                <a href="<?= base_url('logout') ?>"
+                <button onclick="confirmLogout('<?= base_url('logout') ?>')"
                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition"
                    title="Logout">
                     <i class="fas fa-right-from-bracket text-sm"></i>
-                </a>
+                </button>
             </div>
         </header>
 
-        <!-- Flash Messages -->
+        <!-- Flash Messages via SweetAlert2 -->
         <?php if (session()->getFlashdata('success')): ?>
-        <div x-data="{show:true}" x-show="show" x-cloak
-             x-init="setTimeout(()=>show=false,4000)"
-             x-transition:leave="transition-opacity duration-300"
-             x-transition:leave-end="opacity-0"
-             class="mx-6 mt-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-[13px] shadow-sm">
-            <div class="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-check text-emerald-600 text-xs"></i>
-            </div>
-            <span class="flex-1"><?= session()->getFlashdata('success') ?></span>
-            <button @click="show=false" class="text-emerald-400 hover:text-emerald-600 transition ml-auto">
-                <i class="fas fa-xmark text-sm"></i>
-            </button>
-        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: <?= json_encode(session()->getFlashdata('success')) ?>,
+                showConfirmButton: false,
+                timer: 3500,
+                timerProgressBar: true,
+            });
+        });
+        </script>
         <?php endif; ?>
 
         <?php if (session()->getFlashdata('error')): ?>
-        <div x-data="{show:true}" x-show="show" x-cloak
-             x-init="setTimeout(()=>show=false,6000)"
-             x-transition:leave="transition-opacity duration-300"
-             x-transition:leave-end="opacity-0"
-             class="mx-6 mt-4 flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-[13px] shadow-sm">
-            <div class="w-6 h-6 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-xmark text-rose-600 text-xs"></i>
-            </div>
-            <span class="flex-1"><?= session()->getFlashdata('error') ?></span>
-            <button @click="show=false" class="text-rose-400 hover:text-rose-600 transition ml-auto">
-                <i class="fas fa-xmark text-sm"></i>
-            </button>
-        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: <?= json_encode(session()->getFlashdata('error')) ?>,
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+            });
+        });
+        </script>
         <?php endif; ?>
 
         <!-- Content -->
@@ -261,5 +262,42 @@
     </div>
 </div>
 
+<script>
+function confirmDelete(url, message) {
+    Swal.fire({
+        title: 'Konfirmasi Hapus',
+        text: message || 'Data yang dihapus tidak dapat dikembalikan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+
+function confirmLogout(url) {
+    Swal.fire({
+        title: 'Logout?',
+        text: 'Anda akan keluar dari sistem.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4f46e5',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Logout',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+</script>
 </body>
 </html>

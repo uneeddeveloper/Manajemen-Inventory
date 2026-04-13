@@ -1,6 +1,96 @@
 <?= $this->extend('layout/main') ?>
 <?= $this->section('content') ?>
 
+<!-- Welcome Banner -->
+<?php
+    date_default_timezone_set('Asia/Jakarta');
+    $hour = (int) date('H');
+    if ($hour >= 5 && $hour < 12)       { $greeting = 'Selamat Pagi';  $greetIcon = 'fa-sun';           $greetColor = 'from-amber-400 to-orange-500'; }
+    elseif ($hour >= 12 && $hour < 15)  { $greeting = 'Selamat Siang'; $greetIcon = 'fa-cloud-sun';     $greetColor = 'from-sky-400 to-blue-500'; }
+    elseif ($hour >= 15 && $hour < 19)  { $greeting = 'Selamat Sore';  $greetIcon = 'fa-cloud-sun-rain'; $greetColor = 'from-orange-400 to-rose-500'; }
+    else                                { $greeting = 'Selamat Malam'; $greetIcon = 'fa-moon';           $greetColor = 'from-indigo-600 to-violet-700'; }
+
+    $nama = session()->get('nama') ?? 'Admin';
+    $hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][(int)date('w')];
+    $bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][(int)date('n')-1];
+    $tanggal = $hari . ', ' . date('d') . ' ' . $bulan . ' ' . date('Y');
+?>
+<div class="relative overflow-hidden rounded-2xl mb-6 shadow-lg"
+     style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #0ea5e9 100%);">
+
+    <!-- Decorative blobs -->
+    <div class="absolute -top-10 -right-10 w-56 h-56 rounded-full opacity-10"
+         style="background: radial-gradient(circle, #fff 0%, transparent 70%)"></div>
+    <div class="absolute -bottom-12 -left-8 w-48 h-48 rounded-full opacity-10"
+         style="background: radial-gradient(circle, #bae6fd 0%, transparent 70%)"></div>
+    <div class="absolute top-4 right-40 w-24 h-24 rounded-full opacity-[0.07]"
+         style="background: radial-gradient(circle, #fff 0%, transparent 70%)"></div>
+
+    <!-- Dots grid decoration -->
+    <div class="absolute inset-0 opacity-[0.04]"
+         style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 22px 22px;"></div>
+
+    <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5 px-7 py-6">
+
+        <!-- Left: greeting -->
+        <div class="flex items-center gap-4">
+            <!-- Avatar -->
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0 shadow-md"
+                 style="background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); border: 1.5px solid rgba(255,255,255,0.25)">
+                <?= strtoupper(substr($nama, 0, 1)) ?>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2 mb-0.5">
+                    <i class="fas <?= $greetIcon ?> text-amber-300 text-sm"></i>
+                    <span class="text-blue-200 text-[12px] font-medium tracking-wide"><?= $greeting ?></span>
+                </div>
+                <h2 class="text-white text-[22px] font-bold leading-tight">
+                    <?= esc($nama) ?> <span class="wave inline-block">👋</span>
+                </h2>
+                <p class="text-blue-200 text-[12px] mt-1 flex items-center gap-1.5">
+                    <i class="fas fa-calendar-day text-[11px]"></i>
+                    <?= $tanggal ?>
+                </p>
+            </div>
+        </div>
+
+        <!-- Right: quick actions -->
+        <div class="flex flex-wrap items-center gap-2 flex-shrink-0">
+            <a href="<?= base_url('penjualan/create') ?>"
+               class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-semibold text-blue-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
+               style="background: rgba(255,255,255,0.95)">
+                <i class="fas fa-cash-register text-blue-500 text-xs"></i>
+                Transaksi Baru
+            </a>
+            <a href="<?= base_url('stok-masuk/create') ?>"
+               class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-semibold transition-all hover:scale-105 active:scale-95 shadow-sm"
+               style="background: rgba(255,255,255,0.15); color:#e0f2fe; border: 1.5px solid rgba(255,255,255,0.2); backdrop-filter:blur(4px)">
+                <i class="fas fa-boxes-stacked text-[11px]"></i>
+                Input Stok
+            </a>
+            <a href="<?= base_url('laporan') ?>"
+               class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-semibold transition-all hover:scale-105 active:scale-95 shadow-sm"
+               style="background: rgba(255,255,255,0.15); color:#e0f2fe; border: 1.5px solid rgba(255,255,255,0.2); backdrop-filter:blur(4px)">
+                <i class="fas fa-chart-bar text-[11px]"></i>
+                Laporan
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.wave { animation: wave-hand 2.2s ease-in-out infinite; transform-origin: 70% 70%; display: inline-block; }
+@keyframes wave-hand {
+    0%,100% { transform: rotate(0deg); }
+    15%      { transform: rotate(14deg); }
+    30%      { transform: rotate(-8deg); }
+    45%      { transform: rotate(14deg); }
+    60%      { transform: rotate(-4deg); }
+    75%      { transform: rotate(10deg); }
+}
+</style>
+
 <!-- Stat Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
 

@@ -54,11 +54,10 @@
                                class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
                                 <i class="fas fa-eye text-xs"></i>
                             </a>
-                            <a href="<?= base_url('penjualan/delete/'.$p['id']) ?>"
-                               onclick="return confirm('Hapus transaksi ini? Stok barang akan dikembalikan.')"
+                            <button onclick="confirmDelete('<?= base_url('penjualan/delete/'.$p['id']) ?>','Hapus transaksi ini? Stok barang akan dikembalikan.')"
                                class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 flex items-center justify-center transition">
                                 <i class="fas fa-trash text-xs"></i>
-                            </a>
+                            </button>
                         </div>
                     </td>
                 </tr>
