@@ -3,6 +3,7 @@
 namespace Config;
 
 use App\Filters\AuthFilter;
+use App\Filters\CustomerAuthFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -36,6 +37,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'auth'          => AuthFilter::class,
+        'customer_auth' => CustomerAuthFilter::class,
     ];
 
     /**
@@ -77,7 +79,7 @@ class Filters extends BaseFilters
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
-            'auth' => ['except' => ['login', 'login/*']],
+            'auth' => ['except' => ['', 'login', 'login/*', 'shop', 'shop/*']],
         ],
         'after' => [
             // 'honeypot',

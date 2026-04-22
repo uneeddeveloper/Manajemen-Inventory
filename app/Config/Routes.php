@@ -11,7 +11,7 @@ $routes->get('login',  'AuthController::login');
 $routes->post('login', 'AuthController::doLogin');
 $routes->get('logout', 'AuthController::logout');
 
-$routes->get('/', 'DashboardController::index');
+$routes->get('/', 'LandingController::index');
 
 // Dashboard
 $routes->get('dashboard', 'DashboardController::index');
@@ -86,3 +86,25 @@ $routes->get('api/retur/detail/(:num)',      'ReturController::getDetailPenjuala
 
 // API Dashboard Charts
 $routes->get('api/dashboard/chart',         'DashboardController::chartData');
+
+// ===== CUSTOMER / SHOP =====
+$routes->get('shop',                             'Customer\ShopController::index');
+$routes->get('shop/detail/(:num)',               'Customer\ShopController::detail/$1');
+
+// Auth Google
+$routes->get('shop/login',                       'Customer\AuthController::login');
+$routes->get('shop/auth/google',                 'Customer\AuthController::redirectToGoogle');
+$routes->get('shop/auth/callback',               'Customer\AuthController::callback');
+$routes->get('shop/auth/logout',                 'Customer\AuthController::logout');
+
+// Cart (session-based, no login required)
+$routes->post('shop/cart/add',                   'Customer\CartController::add');
+$routes->post('shop/cart/update',                'Customer\CartController::update');
+$routes->post('shop/cart/remove',                'Customer\CartController::remove');
+$routes->get('shop/cart',                        'Customer\CartController::index');
+
+// Checkout & Orders (login required — filter diterapkan di Filters.php)
+$routes->get('shop/checkout',                    'Customer\CheckoutController::index',        ['filter' => 'customer_auth']);
+$routes->post('shop/checkout/store',             'Customer\CheckoutController::store',        ['filter' => 'customer_auth']);
+$routes->get('shop/checkout/success/(:num)',     'Customer\CheckoutController::success/$1',   ['filter' => 'customer_auth']);
+$routes->get('shop/orders',                      'Customer\CheckoutController::orders',       ['filter' => 'customer_auth']);

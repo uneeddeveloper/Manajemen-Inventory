@@ -13,7 +13,7 @@ class PenjualanModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'no_transaksi', 'tanggal_jual', 'nama_pembeli',
+        'no_transaksi', 'tanggal_jual', 'nama_pembeli', 'id_customer',
         'total_harga', 'bayar', 'kembalian', 'keterangan',
     ];
 
